@@ -1,0 +1,75 @@
+<main class="wrapper">
+  @if (!joined()) {
+    <section class="card join">
+      <h1>Chat Real-Time</h1>
+      <p class="subtitle">Praktikum SignalR · Angular 21 + ASP.NET Core</p>
+
+      <form (ngSubmit)="join()">
+        <input
+          name="username"
+          placeholder="Masukkan nama Anda"
+          maxlength="30"
+          autocomplete="off"
+          [ngModel]="username()"
+          (ngModelChange)="username.set($event)"
+        />
+        <button type="submit" [disabled]="!username().trim()">Masuk</button>
+      </form>
+
+      @if (error()) {
+        <p class="error">{{ error() }}</p>
+      }
+    </section>
+  } @else {
+    <section class="card chat">
+      <header class="chat-header">
+        <h2>Ruang Obrolan</h2>
+        <span class="status" [attr.data-state]="chat.status()">{{ chat.status() }}</span>
+        <button class="ghost" (click)="leave()">Keluar</button>
+      </header>
+
+      <div class="chat-body">
+        <aside class="online">
+          <h3>Online ({{ chat.onlineUsers().length }})</h3>
+          <ul>
+            @for (user of chat.onlineUsers(); track user) {
+              <li>{{ user }}</li>
+            }
+          </ul>
+        </aside>
+
+        <div class="messages" #messageList>
+          @for (msg of chat.messages(); track $index) {
+            <div
+              class="message"
+              [class.system]="msg.user === 'Sistem' || msg.user === 'Pengumuman'"
+              [class.mine]="msg.user === username()"
+            >
+              <div class="meta">
+                <strong>{{ msg.user }}</strong>
+                <small>{{ msg.sentAt | date: 'HH:mm' }}</small>
+              </div>
+              <p>{{ msg.text }}</p>
+            </div>
+          } @empty {
+            <p class="empty">Belum ada pesan. Mulailah percakapan!</p>
+          }
+        </div>
+      </div>
+
+      <form class="composer" (ngSubmit)="send()">
+        <input
+          name="draft"
+          placeholder="Tulis pesan..."
+          maxlength="500"
+          autocomplete="off"
+          [ngModel]="draft()"
+          (ngModelChange)="draft.set($event)"
+        />
+        <button type="submit" [disabled]="!draft().trim() || chat.status() !== 'connected'">
+          Kirim
+        </button>
+      </form>
+    </section>
+  }
+</main>
